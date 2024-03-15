@@ -64,8 +64,8 @@ Goal - Achieve 99.4 accuracy on MNIST dataset, under 8k parameters and 15 epochs
 ### Results
 
 - Parameters: 8k
-- Best Train accuracy: 98.89
-- Best Test accuracy: 99.44
+- Best Train accuracy: 98.73
+- Best Test accuracy: 99.40
 
 ### Analysis
 
