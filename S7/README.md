@@ -16,36 +16,37 @@ Goal - Achieve 99.4 accuracy on MNIST dataset, under 8k parameters and 15 epochs
 
 - EPOCHS : 20
 - Parameters: 10.7k
-- Best Train Accuracy: 99.00
-- Best Test Accuracy: 98.98
+- Best Train Accuracy: 99.19
+- Best Test Accuracy: 98.82
 
 ### Analysis
 
-- Good model
-- No overfitting
-- Can be better if trained more
+- Working
+- Overfitting
+- Need regularisation
 
 ---
 
 ### Model 2
 
-[Model2](./session_4_2.ipynb)
+[Model2](./model2.ipynb)
 
 ### Target
 
 - Add normalisation, regularisation, GAP.
-- Increase model capacity at the end (add layer after GAP)
+- Use transition blocks
+- Keep the parameters same
 
 ### Results
 
-- Parameters: 13.8k
-- Best Train Accuracy: 99.39
-- Best Test Accuracy: 99.41
+- Parameters: 10.8k
+- Best Train Accuracy: 99.89
+- Best Test Accuracy: 99.44
 
 ### Analysis
 
 - Normalisatoin, Dropout, GAP working.
-- Highly potent model even with less parameters.
+- No overfitting
 - The model is not over-fitting at all. 
 
 ---
@@ -71,7 +72,7 @@ Goal - Achieve 99.4 accuracy on MNIST dataset, under 8k parameters and 15 epochs
 - Achieved high accuracy faster, but stabilised around 99.3
 - Can achieve more accuracy if trained more.
 - No overfitting
-
+- High potent model even  with less parameters
 
 ## Results
 
