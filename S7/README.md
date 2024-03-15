@@ -1,0 +1,78 @@
+# Session 7 Assignment
+
+Goal - Achieve 99.4 accuracy on MNIST dataset, under 8k parameters and 15 epochs.
+
+### Model 1
+
+[Model1](./model1.ipynb)
+
+### Target
+
+- Have a basic working code
+- Have a skeleton code to build upon
+- Make it as light as possible without adding any normalisation, regularisation, etc.
+
+### Results
+
+- EPOCHS : 20
+- Parameters: 10.7k
+- Best Train Accuracy: 99.00
+- Best Test Accuracy: 98.98
+
+### Analysis
+
+- Good model
+- No overfitting
+- Can be better if trained more
+
+---
+
+### Model 2
+
+[Model2](./session_4_2.ipynb)
+
+### Target
+
+- Add normalisation, regularisation, GAP.
+- Increase model capacity at the end (add layer after GAP)
+
+### Results
+
+- Parameters: 13.8k
+- Best Train Accuracy: 99.39
+- Best Test Accuracy: 99.41
+
+### Analysis
+
+- Normalisatoin, Dropout, GAP working.
+- Highly potent model even with less parameters.
+- The model is not over-fitting at all. 
+
+---
+
+### Model 3
+
+[Model3](./model3.ipynb)
+
+### Target
+
+- Add image augmentation.
+- Properly use transition blocks
+- Used Adam with weight decay.
+
+### Results
+
+- Parameters: 8k
+- Best Train accuracy: 98.89
+- Best Test accuracy: 99.44
+
+### Analysis
+
+- Achieved high accuracy faster, but stabilised around 99.3
+- Can achieve more accuracy if trained more.
+- No overfitting
+
+
+## Results
+
+We have achieved our goal of achieving 99.4 (consistent at the end) accuracy on MNIST using [Model3](./model3.ipynb).
