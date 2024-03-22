@@ -33,5 +33,3 @@ Goal - Achieve 70% accuracy on CIFAR10 dataset, under 50k parameters and 20 epoc
 - Suitable for scenarios where batch sizes are small or inconsistent.
 
 ![versus](https://pic1.zhimg.com/v2-27977bfda164cc78cbef54c5da70d503_1440w.jpg?source=172ae18b)
-
-We have achieved our goal of achieving 99.4 (consistent at the end) accuracy on MNIST using [Model3](./model3.ipynb).
