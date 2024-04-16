@@ -1,6 +1,6 @@
 # Train CIFAR10 with PyTorch
 
-I'm experimenting with [PyTorch](http://pytorch.org/) on the CIFAR10 dataset. For training I applied OneCyclePolicy after calculating the lr with the steepest descent and at the midway of the loss valley.
+I'm experimenting with [PyTorch](http://pytorch.org/) on the CIFAR10 dataset. For training I applied OneCyclePolicy after calculating the lr with the steepest descent and at the midway of the loss valley. Additionally to inptepret the model capabilities I also used grad-cam on the misclassified predictions
 
 ## Prerequisites
 - Python 3.6+
