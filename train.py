@@ -291,12 +291,8 @@ def train():
             pbar.set_description(s)
 
             # Plot images with bounding boxes
-            print("NI : ", ni)
-            print("Results : ", s)
             if ni < 1:
                 f = 'train_batch%g.png' % i  # filename
-                print(f)
-                print('/////////////////////////')
                 plot_images(imgs=imgs, targets=targets, paths=paths, fname=f)
                 if tb_writer:
                     tb_writer.add_image(f, cv2.imread(f)[:, :, ::-1], dataformats='HWC')
