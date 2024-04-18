@@ -56,7 +56,6 @@ def parse_data_cfg(path):
     if not os.path.exists(path) and os.path.exists('data' + os.sep + path):  # add data/ prefix if omitted
         path = 'data' + os.sep + path
 
-    print(path)
 
     with open(path, 'r') as f:
         lines = f.readlines()
@@ -68,7 +67,5 @@ def parse_data_cfg(path):
             continue
         key, val = line.split('=')
         options[key.strip()] = val.strip()
-
-    print(options)
 
     return options
