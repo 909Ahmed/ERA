@@ -103,10 +103,6 @@ def test(cfg,
             output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
             t1 += torch_utils.time_synchronized() - t
         
-        print(train_out, targets)
-
-        if batch_i < 1:
-            plot_images(imgs=imgs, targets=train_out, paths=paths, fname=f)
 
         # Statistics per image
         for si, pred in enumerate(output):
