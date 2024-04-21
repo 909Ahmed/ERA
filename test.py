@@ -95,7 +95,7 @@ def test(cfg,
             t0 += torch_utils.time_synchronized() - t
 
             # Compute loss
-            if hasattr(model, 'hyp'):  # if model has loss hyperparameters
+            if hasattr(model,'hyp'):  # if model has loss hyperparameters
                 loss += compute_loss(train_out, targets, model)[1][:3]  # GIoU, obj, cls
 
             # Run NMS
