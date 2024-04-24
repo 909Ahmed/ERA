@@ -59,6 +59,7 @@ def parse_data_cfg(path):
 
     with open(path, 'r') as f:
         lines = f.readlines()
+        print(lines)
 
     options = dict()
     for line in lines:
