@@ -1817,4 +1817,4 @@ Model Bias Summary:    layer        regression        objectness    classificati
 
 I used genshin Impact character dataset for the training. I haven't played the game and ended up mislabling the characters 😅. The names are actually Hu Tao, Albedo and Ayaka
 
-![image](https://github.com/theschoolofai/YoloV3/blob/master/output/download.jpeg)
+![image](https://github.com/909Ahmed/ERA/blob/master/S12/output.png)
