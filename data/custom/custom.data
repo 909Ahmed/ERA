@@ -1,0 +1,4 @@
+classes=3
+train=data/custom/custom.txt
+valid=data/custom/custom.txt
+names=data/custom/custom.names
