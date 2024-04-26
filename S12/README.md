@@ -8,11 +8,6 @@ Namespace(epochs=100, batch_size=16, accumulate=4, cfg='cfg/yolov3-custom.cfg', 
 Using CUDA device0 _CudaDeviceProperties(name='Tesla T4', total_memory=15102MB)
            device1 _CudaDeviceProperties(name='Tesla T4', total_memory=15102MB)
 
-2024-04-25 17:17:46.655965: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-2024-04-25 17:17:46.656102: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
-2024-04-25 17:17:46.851463: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-Run 'tensorboard --logdir=runs' to view tensorboard at http://localhost:6006/
-
 Model Summary: 225 layers, 6.25841e+07 parameters, 6.25841e+07 gradients
 Caching labels (100 found, 0 missing, 0 empty, 0 duplicate, for 100 images): 100
 Reading image shapes: 100%|█████████████████| 100/100 [00:00<00:00, 7389.32it/s]
