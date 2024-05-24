@@ -1,0 +1,3 @@
+best.pt
+customdata
+py .\yolov9\detect.py --img 1280 --conf 0.1 --device 0 --weights best.pt --source .\customlast\images
