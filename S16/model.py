@@ -24,13 +24,13 @@ class LayerNormalization(pl.LightningModule):
         self.alpha = nn.Parameter(torch.ones(1))  # alpha is a learnable parameter
         self.bias = nn.Parameter(torch.zeros(1))  # bias is a learnable parameter
 
-    def forward(self, x: "(batch, seq_len, hidden_size)"):
+    def forward(self, x):
         """
         Method to apply layer normalization
         :param x: Input for layer normalization
         """
         # Keep the dimension for broadcasting
-        mean = x.mean(dim=-1, keepdim=True)  # (batch, seq_len, 1)
+        mean = x.mean(dim=-1, keepdim=True)  # (batch, seq_len, 1) 
         std = x.std(dim=-1, keepdim=True)  # (batch, seq_len, 1)
         return self.alpha * (x - mean) / (std + self.eps) + self.bias
 
@@ -120,6 +120,8 @@ class PositionalEncoding(pl.LightningModule):
 
         # Create a vector of shape (seq_len)
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)  # (seq_len, 1)
+
+        #check these out ok
 
         # Create a vector of shape (d_model)
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))  # (d_model, 1)
@@ -218,6 +220,8 @@ class MultiHeadAttentionBlock(pl.LightningModule):
         attention_scores = (query @ key.transpose(-2, -1)) / math.sqrt(d_k)
 
         # Mask attention scores
+        print(attention_scores.shape)
+        print(mask.shape)
         if mask is not None:
             # Write a very small value (indicating -inf) to the positions where mask == 0
             attention_scores.masked_fill_(mask == 0, -1e9)
@@ -359,8 +363,7 @@ class DecoderBlock(pl.LightningModule):
         x = self.residual_connections[0](x, lambda x: self.self_attention_block(x, x, x, tgt_mask))
 
         # Encoder output + Decoder Attention output
-        x = self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output,
-                                                                                 src_mask))
+        x = self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output, src_mask))
 
         # Residual layer
         x = self.residual_connections[2](x, self.feed_forward_block)
