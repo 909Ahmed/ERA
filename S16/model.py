@@ -222,6 +222,7 @@ class MultiHeadAttentionBlock(pl.LightningModule):
         # Mask attention scores
         if mask is not None:
             # Write a very small value (indicating -inf) to the positions where mask == 0
+            _MASKING_VALUE = -1e9 if attention_scores.dtype == torch.float32 else -1e4
             attention_scores.masked_fill_(mask == 0, -1e9)
 
         # Apply Softmax
