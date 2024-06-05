@@ -232,8 +232,10 @@ def get_ds(config):
     train_ds = sorted(train_ds, key=lambda x : len(x['encoder_tokens']))
     val_ds = sorted(val_ds, key=lambda x : len(x['encoder_tokens']))
 
-    train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=custom_collate)
-    val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=custom_collate)
+    custom_collate_fn = custom_collate(tokenizer_tgt)
+
+    train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=custom_collate_fn)
+    val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=custom_collate_fn)
     
     return train_dataloader, val_dataloader, tokenizer_src, tokenizer_tgt
 
