@@ -276,23 +276,23 @@ def train_model(config):
     loss_fn = nn.CrossEntropyLoss(ignore_index = tokenizer_src.token_to_id("[PAD]"), label_smoothing=0.1)
     
     #scheduler
-    MAX_LR = 1e-3
+    MAX_LR = 1e-4
     STEPS_PER_EPOCH = len(train_dataloader)
     EPOCHS = config["num_epochs"]
 
-    # scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(
 
-    #     optimizer,
-    #     max_lr=MAX_LR,
-    #     steps_per_epoch=STEPS_PER_EPOCH,
-    #     epochs=EPOCHS,
-    #     pct_start=int(0.3*EPOCHS) / EPOCHS if EPOCHS != 1 else 0.5,
-    #     div_factor=100,
-    #     three_phase=False,
-    #     final_div_factor=100,
-    #     anneal_strategy='linear'
+        optimizer,
+        max_lr=MAX_LR,
+        steps_per_epoch=STEPS_PER_EPOCH,
+        epochs=EPOCHS,
+        pct_start=int(0.3*EPOCHS) / EPOCHS if EPOCHS != 1 else 0.5,
+        div_factor=100,
+        three_phase=False,
+        final_div_factor=100,
+        anneal_strategy='linear'
 
-    # )
+    )
 
     scaler = torch.cuda.amp.GradScaler()
 
@@ -331,8 +331,8 @@ def train_model(config):
             scaler.step(optimizer)
             scaler.update()
 
-            # if not scale > scaler.get_scale():
-            #     scheduler.step()
+            if not scale > scaler.get_scale():
+                scheduler.step()
 
             global_step+=1
             
