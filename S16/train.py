@@ -258,7 +258,7 @@ def train_model(config):
     
     #Adam is used to train each feature with a different learning rate. 
     #If some feature is appearing less, adam takes care of it
-    optimizer = Lion(model.parameters(), lr = 1e-4/10, weight_decay=1e-2)
+    optimizer = Lion(model.parameters(), lr = 1e-4, weight_decay=1e-2)
     
     initial_epoch = 0
     global_step = 0
@@ -307,7 +307,7 @@ def train_model(config):
             encoder_input = batch["encoder_input"].to(device)
             decoder_input = batch["decoder_input"].to(device)
             encoder_mask = batch["encoder_mask"].to(device)
-            decoder_mask = batch["decoder_mask"].to(device)
+            decoder_mask = batch["decoder_mask"].to(device) 
             
             with torch.autocast(device_type='cuda', dtype=torch.float16):
                 encoder_output = model.encode(encoder_input, encoder_mask)
