@@ -5,6 +5,7 @@ from config_file import get_config, get_weights_file_path
 import torchtext.datasets as datasets
 import torch
 torch.cuda.amp.autocast(enabled = True)
+from lion_pytorch import Lion
 
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, random_split
@@ -257,7 +258,7 @@ def train_model(config):
     
     #Adam is used to train each feature with a different learning rate. 
     #If some feature is appearing less, adam takes care of it
-    optimizer = torch.optim.Adam(model.parameters(), lr = config["lr"], eps = 1e-9)
+    optimizer = Lion(model.parameters(), lr = 1e-4/10, weight_decay=1e-2)
     
     initial_epoch = 0
     global_step = 0
@@ -274,6 +275,27 @@ def train_model(config):
         
     loss_fn = nn.CrossEntropyLoss(ignore_index = tokenizer_src.token_to_id("[PAD]"), label_smoothing=0.1)
     
+    #scheduler
+    MAX_LR = 1e-3
+    STEPS_PER_EPOCH = len(train_dataloader)
+    EPOCHS = config["num_epochs"]
+
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(
+
+        optimizer,
+        max_lr=MAX_LR,
+        steps_per_epoch=STEPS_PER_EPOCH,
+        epochs=EPOCHS,
+        pct_start=int(0.3*EPOCHS) / EPOCHS if EPOCHS != 1 else 0.5,
+        div_factor=100,
+        three_phase=False,
+        final_div_factor=100,
+        anneal_strategy='linear'
+
+    )
+
+    scaler = torch.cuda.amp.GradScaler()
+
     for epoch in range(initial_epoch, config["num_epochs"]):
         torch.cuda.empty_cache()
         print(epoch)
@@ -281,32 +303,37 @@ def train_model(config):
         batch_iterator = tqdm(train_dataloader, desc = f"Processing Epoch {epoch:02d}")
         
         for batch in batch_iterator:
+            optimizer.zero_grad(set_to_none=True)
             encoder_input = batch["encoder_input"].to(device)
             decoder_input = batch["decoder_input"].to(device)
             encoder_mask = batch["encoder_mask"].to(device)
             decoder_mask = batch["decoder_mask"].to(device)
             
-            encoder_output = model.encode(encoder_input, encoder_mask)
-            decoder_output = model.decode(encoder_output, encoder_mask, decoder_input, decoder_mask)
-            proj_output = model.project(decoder_output)
-            
-            label = batch["label"].to(device)
-            
-            #Compute loss using cross entropy
-            tgt_vocab_size = tokenizer_tgt.get_vocab_size()
-            loss = loss_fn(proj_output.view(-1, tgt_vocab_size), label.view(-1))
+            with torch.autocast(device_type='cuda', dtype=torch.float16):
+                encoder_output = model.encode(encoder_input, encoder_mask)
+                decoder_output = model.decode(encoder_output, encoder_mask, decoder_input, decoder_mask)
+                proj_output = model.project(decoder_output)
+                
+                label = batch["label"].to(device)
+                
+                #Compute loss using cross entropy
+                tgt_vocab_size = tokenizer_tgt.get_vocab_size()
+                loss = loss_fn(proj_output.view(-1, tgt_vocab_size), label.view(-1))
             batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
 
             #Log the loss
             writer.add_scalar('train_loss', loss.item(), global_step)
             writer.flush()
+
+            scaler.scale(loss).backward()
             
-            #Backpropogate loss
-            loss.backward()
-            
-            #Update weights
-            optimizer.step()
-            optimizer.zero_grad(set_to_none=True)
+            scale = scaler.get_scale()
+            scaler.step(optimizer)
+            scaler.update()
+
+            if not scale > scaler.get_scale():
+                scheduler.step()
+
             global_step+=1
             
         #run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config['seq_len'], device, writer, global_step)
