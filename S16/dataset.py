@@ -69,18 +69,27 @@ class BillingualDataset(Dataset):
         assert label.size(0) == self.seq_len
         
         return {
-            "encoder_input": encoder_input,
-            "decoder_input": decoder_input,
-            "encoder_mask": (encoder_input != self.pad_token).unsqueeze(0).unsqueeze(0).int(), 
-            # encoder mask: (1, 1, seq_len) -> Has 1 when there is text and 0 when there is pad (no text)
+
+            "encoder_tokens" : enc_input_tokens,
+            "decoder_tokens" : dec_input_tokens,
+            "src_text" : src_text,
+            "tgt_text" : tgt_text
+
+        }
+
+        # return {
+        #     "encoder_input": encoder_input,
+        #     "decoder_input": decoder_input,
+        #     "encoder_mask": (encoder_input != self.pad_token).unsqueeze(0).unsqueeze(0).int(), 
+        #     # encoder mask: (1, 1, seq_len) -> Has 1 when there is text and 0 when there is pad (no text)
             
-            "decoder_mask": (decoder_input != self.pad_token).unsqueeze(0).int() & casual_mask(decoder_input.size(0)),
-            # (1, seq_len) and (1, seq_len, seq_len)
-            # Will get 0 for all pads. And 0 for earlier text.
-            "label": label,
-            "src_text": src_text,
-            "tgt_text": tgt_text
-            }
+        #     "decoder_mask": (decoder_input != self.pad_token).unsqueeze(0).int() & casual_mask(decoder_input.size(0)),
+        #     # (1, seq_len) and (1, seq_len, seq_len)
+        #     # Will get 0 for all pads. And 0 for earlier text.
+        #     "label": label,
+        #     "src_text": src_text,
+        #     "tgt_text": tgt_text
+        #     }
     
 def casual_mask(size):
     mask = torch.triu(torch.ones((1, size, size)), diagonal = 1).type(torch.int)

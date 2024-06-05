@@ -129,6 +129,73 @@ def get_or_build_tokenizer(config, ds, lang):
 
     return tokenizer
 
+def get_label(dec_input_tokens, eos_token, pad_token, dec_num_padding_tokens):
+
+    label = torch.cat(
+        [
+            torch.tensor(dec_input_tokens, dtype = torch.int64),
+            eos_token,
+            torch.tensor([pad_token]*dec_num_padding_tokens, dtype = torch.int64),
+        ],
+        dim = 0,
+    )
+
+    return label
+
+def get_encoder(enc_input_tokens, sos_token, eos_token, pad_token, enc_num_padding_tokens):
+
+    encoder_input = torch.cat(
+        [
+            sos_token,
+            torch.tensor(enc_input_tokens, dtype = torch.int64),
+            eos_token,
+            torch.tensor([pad_token]*enc_num_padding_tokens, dtype = torch.int64)
+        ],
+        dim =  0,
+    )
+    return encoder_input
+
+def get_decoder(dec_input_tokens, sos_token, pad_token, dec_num_padding_tokens):
+
+    decoder_input = torch.cat(
+        [
+            sos_token,
+            torch.tensor(dec_input_tokens, dtype = torch.int64),
+            torch.tensor([pad_token]*dec_num_padding_tokens, dtype = torch.int64)
+        ],
+        dim = 0,
+    )
+    return decoder_input
+
+def custom_decor(tokenizer_tgt):
+    def custom_collate(batch):
+
+        sos_token = torch.tensor([tokenizer_tgt.token_to_id("[SOS]")], dtype = torch.int64)
+        eos_token = torch.tensor([tokenizer_tgt.token_to_id("[EOS]")], dtype = torch.int64)
+        pad_token = torch.tensor([tokenizer_tgt.token_to_id("[PAD]")], dtype = torch.int64)
+
+        max_len_enc = max([len(x['src_text']) for x in batch]) + 2
+        max_len_dec = max([len(x['tgt_text']) for x in batch]) + 1
+        
+        encoder_input = torch.stack([get_encoder(x['encoder_tokens'], sos_token, eos_token, pad_token, max_len_enc - len(x['encoder_tokens']) - 2) for x in batch])
+        decoder_input = torch.stack([get_decoder(x['decoder_tokens'], sos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch])
+
+        return {
+            "encoder_input": encoder_input,
+            "decoder_input": decoder_input,
+            "encoder_mask": torch.stack([(x != pad_token).unsqueeze(0).unsqueeze(0).int() for x in encoder_input]), 
+            "decoder_mask": torch.stack([(x != pad_token).unsqueeze(0).int() & casual_mask(decoder_input.size(0)) for x in decoder_input]),
+            "label": torch.stack(get_label(x['decoder_tokens'], eos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch),
+            "src_text": torch.stack([x['src_text'] for x in batch]),
+            "tgt_text": torch.stack([x['tgt_text'] for x in batch])
+
+        }
+    return custom_collate
+
+def casual_mask(size):
+    mask = torch.triu(torch.ones((1, size, size)), diagonal = 1).type(torch.int)
+    #This will get the upper traingle values
+    return mask == 0
 
 def get_ds(config):
     
@@ -145,9 +212,6 @@ def get_ds(config):
     val_ds_size = len(ds_raw) - train_ds_size
     train_ds_raw, val_ds_raw = random_split(ds_raw, [train_ds_size, val_ds_size])
     
-    train_ds = BillingualDataset(train_ds_raw, tokenizer_src, tokenizer_tgt, src_lang, tgt_lang, seq_len)
-    val_ds = BillingualDataset(val_ds_raw, tokenizer_src, tokenizer_tgt, src_lang, tgt_lang, seq_len)
-    
     max_len_src = 0
     max_len_tgt = 0
     
@@ -160,8 +224,14 @@ def get_ds(config):
     print(f"Max length of the source sentence : {max_len_src}")
     print(f"Max length of the source target : {max_len_tgt}")
     
-    train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=collate_fn_t)
-    val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=collate_fn_t)
+    train_ds = BillingualDataset(train_ds_raw, tokenizer_src, tokenizer_tgt, src_lang, tgt_lang, seq_len)
+    val_ds = BillingualDataset(val_ds_raw, tokenizer_src, tokenizer_tgt, src_lang, tgt_lang, seq_len)
+
+    train_ds = sorted(train_ds, key=lambda x : len(x['encoder_tokens']))
+    val_ds = sorted(val_ds, key=lambda x : len(x['encoder_tokens']))
+
+    train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=custom_decor)
+    val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=custom_decor)
     
     return train_dataloader, val_dataloader, tokenizer_src, tokenizer_tgt
 
