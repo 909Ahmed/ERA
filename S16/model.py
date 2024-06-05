@@ -220,8 +220,6 @@ class MultiHeadAttentionBlock(pl.LightningModule):
         attention_scores = (query @ key.transpose(-2, -1)) / math.sqrt(d_k)
 
         # Mask attention scores
-        print(attention_scores.shape)
-        print(mask.shape)
         if mask is not None:
             # Write a very small value (indicating -inf) to the positions where mask == 0
             attention_scores.masked_fill_(mask == 0, -1e9)
