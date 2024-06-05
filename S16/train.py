@@ -189,8 +189,8 @@ def custom_collate_fn(batch):
         "encoder_mask": torch.stack([(x != pad_token).unsqueeze(0).unsqueeze(0).int() for x in encoder_input]), 
         "decoder_mask": torch.stack([(x != pad_token).unsqueeze(0).int() & casual_mask(x.size(0)) for x in decoder_input]),
         "label": torch.stack([get_label(x['decoder_tokens'], eos_token, pad_token, max_len_dec - len(x['decoder_tokens']) - 1) for x in batch]),
-        "src_text": torch.stack([torch.tensor(x['src_text']) for x in batch]),
-        "tgt_text": torch.stack([torch.tensor(x['tgt_text']) for x in batch])
+        # "src_text": torch.stack([torch.tensor(x['src_text']) for x in batch]),
+        # "tgt_text": torch.stack([torch.tensor(x['tgt_text']) for x in batch])
     }
 
 def casual_mask(size):
