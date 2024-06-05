@@ -167,32 +167,31 @@ def get_decoder(dec_input_tokens, sos_token, pad_token, dec_num_padding_tokens):
     )
     return decoder_input
 
-class custom_collate:
+sick_mate = None
 
-    def __init__(self, tokenizer_tgt):
-        self.tokenizer_tgt = tokenizer_tgt
+def custom_collate_fn(batch):
 
-    def __call__(self, batch):
+    global sick_mate
 
-        sos_token = torch.tensor([self.tokenizer_tgt.token_to_id("[SOS]")], dtype = torch.int64)
-        eos_token = torch.tensor([self.tokenizer_tgt.token_to_id("[EOS]")], dtype = torch.int64)
-        pad_token = torch.tensor([self.tokenizer_tgt.token_to_id("[PAD]")], dtype = torch.int64)
+    sos_token = torch.tensor([sick_mate.token_to_id("[SOS]")], dtype = torch.int64)
+    eos_token = torch.tensor([sick_mate.token_to_id("[EOS]")], dtype = torch.int64)
+    pad_token = torch.tensor([sick_mate.token_to_id("[PAD]")], dtype = torch.int64)
 
-        max_len_enc = max([len(x['src_text']) for x in batch]) + 2
-        max_len_dec = max([len(x['tgt_text']) for x in batch]) + 1
-        
-        encoder_input = torch.stack([get_encoder(x['encoder_tokens'], sos_token, eos_token, pad_token, max_len_enc - len(x['encoder_tokens']) - 2) for x in batch])
-        decoder_input = torch.stack([get_decoder(x['decoder_tokens'], sos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch])
+    max_len_enc = max([len(x['src_text']) for x in batch]) + 2
+    max_len_dec = max([len(x['tgt_text']) for x in batch]) + 1
+    
+    encoder_input = torch.stack([get_encoder(x['encoder_tokens'], sos_token, eos_token, pad_token, max_len_enc - len(x['encoder_tokens']) - 2) for x in batch])
+    decoder_input = torch.stack([get_decoder(x['decoder_tokens'], sos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch])
 
-        return {
-            "encoder_input": encoder_input,
-            "decoder_input": decoder_input,
-            "encoder_mask": torch.stack([(x != pad_token).unsqueeze(0).unsqueeze(0).int() for x in encoder_input]), 
-            "decoder_mask": torch.stack([(x != pad_token).unsqueeze(0).int() & casual_mask(decoder_input.size(0)) for x in decoder_input]),
-            "label": torch.stack(get_label(x['decoder_tokens'], eos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch),
-            "src_text": torch.stack([x['src_text'] for x in batch]),
-            "tgt_text": torch.stack([x['tgt_text'] for x in batch])
-        }
+    return {
+        "encoder_input": encoder_input,
+        "decoder_input": decoder_input,
+        "encoder_mask": torch.stack([(x != pad_token).unsqueeze(0).unsqueeze(0).int() for x in encoder_input]), 
+        "decoder_mask": torch.stack([(x != pad_token).unsqueeze(0).int() & casual_mask(decoder_input.size(0)) for x in decoder_input]),
+        "label": torch.stack(get_label(x['decoder_tokens'], eos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch),
+        "src_text": torch.stack([x['src_text'] for x in batch]),
+        "tgt_text": torch.stack([x['tgt_text'] for x in batch])
+    }
 
 def casual_mask(size):
     mask = torch.triu(torch.ones((1, size, size)), diagonal = 1).type(torch.int)
@@ -201,6 +200,7 @@ def casual_mask(size):
 
 def get_ds(config):
     
+    global sick_mate
     ds_raw = load_dataset('opus_books', f"{config['lang_src']}-{config['lang_tgt']}", split = 'train')  
     
     src_lang = config["lang_src"]
@@ -209,6 +209,7 @@ def get_ds(config):
     
     tokenizer_src = get_or_build_tokenizer(config, ds_raw, src_lang)
     tokenizer_tgt = get_or_build_tokenizer(config, ds_raw, tgt_lang)
+    sick_mate = tokenizer_tgt
     
     train_ds_size = int(0.9 * len(ds_raw))
     val_ds_size = len(ds_raw) - train_ds_size
@@ -232,7 +233,6 @@ def get_ds(config):
     train_ds = sorted(train_ds, key=lambda x : len(x['encoder_tokens']))
     val_ds = sorted(val_ds, key=lambda x : len(x['encoder_tokens']))
 
-    custom_collate_fn = custom_collate(tokenizer_tgt)
 
     train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=custom_collate_fn)
     val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=custom_collate_fn)
