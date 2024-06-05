@@ -167,12 +167,16 @@ def get_decoder(dec_input_tokens, sos_token, pad_token, dec_num_padding_tokens):
     )
     return decoder_input
 
-def custom_decor(tokenizer_tgt):
-    def custom_collate(batch):
+class custom_collate:
 
-        sos_token = torch.tensor([tokenizer_tgt.token_to_id("[SOS]")], dtype = torch.int64)
-        eos_token = torch.tensor([tokenizer_tgt.token_to_id("[EOS]")], dtype = torch.int64)
-        pad_token = torch.tensor([tokenizer_tgt.token_to_id("[PAD]")], dtype = torch.int64)
+    def __init__(self, tokenizer_tgt):
+        self.tokenizer_tgt = tokenizer_tgt
+
+    def __call__(self, batch):
+
+        sos_token = torch.tensor([self.tokenizer_tgt.token_to_id("[SOS]")], dtype = torch.int64)
+        eos_token = torch.tensor([self.tokenizer_tgt.token_to_id("[EOS]")], dtype = torch.int64)
+        pad_token = torch.tensor([self.tokenizer_tgt.token_to_id("[PAD]")], dtype = torch.int64)
 
         max_len_enc = max([len(x['src_text']) for x in batch]) + 2
         max_len_dec = max([len(x['tgt_text']) for x in batch]) + 1
@@ -188,9 +192,7 @@ def custom_decor(tokenizer_tgt):
             "label": torch.stack(get_label(x['decoder_tokens'], eos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch),
             "src_text": torch.stack([x['src_text'] for x in batch]),
             "tgt_text": torch.stack([x['tgt_text'] for x in batch])
-
         }
-    return custom_collate
 
 def casual_mask(size):
     mask = torch.triu(torch.ones((1, size, size)), diagonal = 1).type(torch.int)
@@ -230,8 +232,8 @@ def get_ds(config):
     train_ds = sorted(train_ds, key=lambda x : len(x['encoder_tokens']))
     val_ds = sorted(val_ds, key=lambda x : len(x['encoder_tokens']))
 
-    train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=custom_decor)
-    val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=custom_decor)
+    train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=custom_collate)
+    val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=custom_collate)
     
     return train_dataloader, val_dataloader, tokenizer_src, tokenizer_tgt
 
