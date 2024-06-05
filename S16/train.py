@@ -181,14 +181,14 @@ def custom_collate_fn(batch):
     max_len_dec = max([len(x['tgt_text']) for x in batch]) + 1
     
     encoder_input = torch.stack([get_encoder(x['encoder_tokens'], sos_token, eos_token, pad_token, max_len_enc - len(x['encoder_tokens']) - 2) for x in batch])
-    decoder_input = torch.stack([get_decoder(x['decoder_tokens'], sos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch])
+    decoder_input = torch.stack([get_decoder(x['decoder_tokens'], sos_token, pad_token, max_len_dec - len(x['decoder_tokens']) - 1) for x in batch])
 
     return {
         "encoder_input": encoder_input,
         "decoder_input": decoder_input,
         "encoder_mask": torch.stack([(x != pad_token).unsqueeze(0).unsqueeze(0).int() for x in encoder_input]), 
         "decoder_mask": torch.stack([(x != pad_token).unsqueeze(0).int() & casual_mask(decoder_input.size(0)) for x in decoder_input]),
-        "label": torch.stack(get_label(x['decoder_tokens'], eos_token, pad_token, max_len_dec - x['decoder_tokens'] - 1) for x in batch),
+        "label": torch.stack(get_label(x['decoder_tokens'], eos_token, pad_token, max_len_dec - len(x['decoder_tokens']) - 1) for x in batch),
         "src_text": torch.stack([x['src_text'] for x in batch]),
         "tgt_text": torch.stack([x['tgt_text'] for x in batch])
     }
