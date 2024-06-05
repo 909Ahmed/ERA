@@ -177,8 +177,8 @@ def custom_collate_fn(batch):
     eos_token = torch.tensor([sick_mate.token_to_id("[EOS]")], dtype = torch.int64)
     pad_token = torch.tensor([sick_mate.token_to_id("[PAD]")], dtype = torch.int64)
 
-    max_len_enc = max([len(x['src_text']) for x in batch]) + 2
-    max_len_dec = max([len(x['tgt_text']) for x in batch]) + 1
+    max_len_enc = max([len(x['encoder_tokens']) for x in batch]) + 2
+    max_len_dec = max([len(x['decoder_tokens']) for x in batch]) + 1
     
     encoder_input = torch.stack([get_encoder(x['encoder_tokens'], sos_token, eos_token, pad_token, max_len_enc - len(x['encoder_tokens']) - 2) for x in batch])
     decoder_input = torch.stack([get_decoder(x['decoder_tokens'], sos_token, pad_token, max_len_dec - len(x['decoder_tokens']) - 1) for x in batch])
@@ -232,7 +232,6 @@ def get_ds(config):
 
     train_ds = sorted(train_ds, key=lambda x : len(x['encoder_tokens']))
     val_ds = sorted(val_ds, key=lambda x : len(x['encoder_tokens']))
-
 
     train_dataloader = DataLoader(train_ds, batch_size = config["batch_size"], shuffle = True, collate_fn=custom_collate_fn)
     val_dataloader = DataLoader(val_ds, batch_size = 1, shuffle = True, collate_fn=custom_collate_fn)
