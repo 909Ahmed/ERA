@@ -315,7 +315,7 @@ def train():
         t1 = time.time()
         dt = (t1 - t0) * 1000
         tokens_per_sec = (train_loader.B * train_loader.T) / (t1 - t0)
-        print(f'step{step} | loss: {loss.item()} | dt: {dt:.2f}ms | tok/sec: {tokens_per_sec: .2f} | norm: {norm:.2f}')
+        print(f'step{step} | loss: {loss.item()} | dt: {dt:.2f}ms | tok/sec: {tokens_per_sec: .2f} | norm: {norm:.2f}, lr : {lr}')
 
     print(loss)
 
